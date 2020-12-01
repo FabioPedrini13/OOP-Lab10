@@ -88,7 +88,7 @@ public final class ConcurrentGUI extends JFrame {
                      * All the operations on the GUI must be performed by the
                      * Event-Dispatch Thread (EDT)!
                      */
-                    SwingUtilities.invokeAndWait(() -> ConcurrentGUI.this.display.setText(Integer.toString(Agent.this.counter)));
+                    SwingUtilities.invokeAndWait(() -> ConcurrentGUI.this.display.setText(Integer.toString(this.counter)));
                     this.counter++;
                     Thread.sleep(100);
                 } catch (InvocationTargetException | InterruptedException ex) {
