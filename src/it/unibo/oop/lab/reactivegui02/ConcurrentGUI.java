@@ -2,8 +2,6 @@ package it.unibo.oop.lab.reactivegui02;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JButton;
@@ -47,35 +45,9 @@ public final class ConcurrentGUI extends JFrame {
         /*
          * Register a listener that stops it
          */
-        stop.addActionListener(new ActionListener() {
-            /**
-             * event handler associated to action event on button stop.
-             * 
-             * @param e
-             *            the action event that will be handled by this listener
-             */
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                // Agent should be final
-                agent.stopCounting();
-            }
-        });
-
-        up.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                // Agent should be final
-                agent.increasing();
-            }
-        });
-
-        down.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                // Agent should be final
-                agent.decreasing();
-            }
-        });
+        stop.addActionListener(e -> agent.stopCounting());
+        up.addActionListener(e -> agent.increasing());
+        down.addActionListener(e -> agent.decreasing());
     }
 
     /*
@@ -106,11 +78,7 @@ public final class ConcurrentGUI extends JFrame {
                      * Event-Dispatch Thread (EDT)!
                      */
                     SwingUtilities.invokeAndWait(() -> ConcurrentGUI.this.display.setText(Integer.toString(this.counter)));
-                    if (this.direction) {
-                        this.counter++;
-                    } else {
-                        this.counter--;
-                    }
+                    this.counter += this.direction ? +1 : -1;
                     Thread.sleep(100);
                 } catch (InvocationTargetException | InterruptedException ex) {
                     /*
