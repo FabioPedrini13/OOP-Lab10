@@ -14,10 +14,12 @@ public class AnotherConcurrentGUI extends JFrame {
     private static final long serialVersionUID = 1L;
     private static final double WIDTH_PERC = 0.2;
     private static final double HEIGHT_PERC = 0.1;
+    private static final int TEN_SECONDS = 10_000;
     private final JLabel display = new JLabel();
     private final JButton stop = new JButton("stop");
     private final JButton up = new JButton("up");
     private final JButton down = new JButton("down");
+    private final Agent agent = new Agent();
 
     /**
      * Builds a new CGUI.
@@ -39,23 +41,37 @@ public class AnotherConcurrentGUI extends JFrame {
          * thread management should be left to
          * java.util.concurrent.ExecutorService
          */
-        final Agent1 agent1 = new Agent1();
-        final Agent2 agent2 = new Agent2();
-        new Thread(agent1).start();
-        new Thread(agent2).start();
+        new Thread(agent).start();
+        new Thread(() ->  {
+            try {
+                Thread.sleep(TEN_SECONDS);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+            this.stopCounting();
+        }).start();
         /*
          * Register a listener that stops it
          */
-        stop.addActionListener(e -> agent1.stopCounting());
-        up.addActionListener(e -> agent1.increasing());
-        down.addActionListener(e -> agent1.decreasing());
+        stop.addActionListener(e -> this.stopCounting());
+        up.addActionListener(e -> agent.increasing());
+        down.addActionListener(e -> agent.decreasing());
+    }
+
+    public void stopCounting() {
+        agent.stopCounting();
+        SwingUtilities.invokeLater(() -> {
+            this.up.setEnabled(false);
+            this.down.setEnabled(false);
+            this.stop.setEnabled(false);
+        });
     }
 
     /*
      * The counter agent is implemented as a nested class. This makes it
      * invisible outside and encapsulated.
      */
-    private class Agent1 implements Runnable {
+    private class Agent implements Runnable {
         /*
          * Stop is volatile to ensure visibility. Look at:
          * 
@@ -97,9 +113,6 @@ public class AnotherConcurrentGUI extends JFrame {
          */
         public void stopCounting() {
             this.stop = true;
-            AnotherConcurrentGUI.this.up.setEnabled(false);
-            AnotherConcurrentGUI.this.down.setEnabled(false);
-            AnotherConcurrentGUI.this.stop.setEnabled(false);
         }
 
         public void increasing() {
@@ -108,26 +121,6 @@ public class AnotherConcurrentGUI extends JFrame {
 
         public void decreasing() {
             this.direction = false;
-        }
-    }
-
-    private class Agent2 implements Runnable {
-        private static final int MILLISECONDS = 10_000;
-        @Override
-        public void run() {
-            try {
-                Thread.sleep(Agent2.MILLISECONDS);
-                SwingUtilities.invokeAndWait(() -> this.stopCounting());
-            } catch (InvocationTargetException | InterruptedException ex) {
-                ex.printStackTrace();
-            }
-        }
-        
-        public void stopCounting() {
-            AnotherConcurrentGUI.this.stop.doClick();
-            AnotherConcurrentGUI.this.up.setEnabled(false);
-            AnotherConcurrentGUI.this.down.setEnabled(false);
-            AnotherConcurrentGUI.this.stop.setEnabled(false);
         }
     }
 }
