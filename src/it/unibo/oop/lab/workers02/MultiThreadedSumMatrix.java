@@ -1,6 +1,5 @@
 package it.unibo.oop.lab.workers02;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,19 +29,17 @@ public class MultiThreadedSumMatrix implements SumMatrix {
          */
         Worker(final double[][] matrix, final int startpos, final int nelem) {
             super();
-            this.matrix = matrix;
+            this.matrix = matrix.clone();
             this.startpos = startpos;
             this.nelem = nelem;
         }
 
         @Override
         public void run() {
-            final int lineLength = Array.getLength(matrix[0]);
-            final int totalSize = lineLength * lineLength;
             System.out.println("Working from position " + startpos + " to position " + (startpos + nelem - 1));
-            for (int i = startpos; i < totalSize && i < startpos + nelem; i++) {
-                for (int j = startpos; j < lineLength && j < startpos + nelem; j++) {
-                    this.res += this.matrix[i][j];
+            for (int i = startpos; i < matrix.length && i < startpos + nelem; i++) {
+                for (final double elem : matrix[i]) {
+                    this.res += elem;
                 }
             }
         }
@@ -60,14 +57,12 @@ public class MultiThreadedSumMatrix implements SumMatrix {
 
     @Override
     public double sum(final double[][] matrix) {
-        final int lineLength = Array.getLength(matrix[0]);
-        final int totalSize = lineLength * lineLength;
-        final int size = totalSize / this.nthread + totalSize % this.nthread;
+        final int size = matrix.length / this.nthread + matrix.length % this.nthread;
         /*
          * Build a list of workers
          */
         final List<Worker> workers = new ArrayList<>(nthread);
-        for (int start = 0; start < totalSize; start += size) {
+        for (int start = 0; start < matrix.length; start += size) {
             workers.add(new Worker(matrix, start, size));
         }
         /*
@@ -81,7 +76,7 @@ public class MultiThreadedSumMatrix implements SumMatrix {
          * using barriers and latches, and the whole operation would be better done with
          * futures.
          */
-        long sum = 0;
+        double sum = 0;
         for (final Worker w: workers) {
             try {
                 w.join();
